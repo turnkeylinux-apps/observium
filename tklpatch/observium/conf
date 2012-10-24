@@ -83,9 +83,10 @@ echo "Observium:      http://\$ipaddr"            > /etc/confconsole/services.tx
 echo "Web Shell:      http://\$ipaddr:12320"     >> /etc/confconsole/services.txt
 echo "Webmin:         http://\$ipaddr:12321"     >> /etc/confconsole/services.txt
 echo "SMB/CIFS:       nzbapp (ports 139/445)"    >> /etc/confconsole/services.txt
-echo
-echo "   Note: Default userid/password for Observium is"
-echo "         observium/observium"
+echo >> /etc/confconsole/services.txt
+echo "   Note: Default userid/password for Observium is:"  >> /etc/confconsole/services.txt
+echo "         observium/observium" >> /etc/confconsole/services.txt
+
 
 service mysql stop
 service apache2 stop
