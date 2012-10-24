@@ -1,0 +1,100 @@
+#!/bin/bash -ex
+
+HOSTNAME=observium
+USERNAME=observium
+PASSWORD=observium
+GROUPNAME=observium
+MYSQLUSER=observium
+MYSQLPASSWORD=observium
+
+# set hostname
+echo "$HOSTNAME" > /etc/hostname
+sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
+
+# create the nzb userid (which all the nzb daemons run as)
+groupadd $GROUPNAME
+useradd -c "Default userid" -d /home/$USERNAME -g $GROUPNAME -m -s /bin/bash "$USERNAME"
+chown -R $USERNAME:$GROUPNAME /home/$USERNAME
+
+# add the python installation tools and sudo
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -y \
+    -o DPkg::Options::=--force-confdef \
+    -o DPkg::Options::=--force-confold \
+    install python-software-properties sudo subversion
+
+####################################################
+# INSTALL OBSERVIUM
+####################################################
+mkdir -p /opt/observium 
+cd /opt
+svn co http://www.observium.org/svn/observer/trunk observium
+cd observium
+
+####################################################
+# INSTALL DEPENDENCIES
+####################################################
+DEBIAN_FRONTEND=noninteractive apt-get -y \
+    -o DPkg::Options::=--force-confdef \
+    -o DPkg::Options::=--force-confold \
+    install \
+    libapache2-mod-php5 php5-cli php5-mysql \
+    php5-gd php5-snmp php-pear snmp graphviz \
+    mysql-server mysql-client rrdtool \
+    fping imagemagick whois mtr-tiny nmap ipmitool \
+    libvirt-bin
+
+mysqladmin -u root password $MYSQLPASSWORD
+
+####################################################
+# INSTALL IPv4/IPv6 pear libraries
+####################################################
+pear install Net_IPv4
+pear install Net_IPv6
+
+####################################################
+# CONFIGURE OBSERVIUM
+####################################################
+cp config.php.default config.php
+sed -i "s|USERNAME|$MYSQLUSER|" config.php
+sed -i "s|PASSWORD|$MYSQLPASSWORD|" config.php
+mkdir graphs rrd
+chown www-data:www-data graphs rrd
+
+mysql -u root -p$MYSQLPASSWORD -e "create database observium;"
+mysql -u root -p$MYSQLPASSWORD -e "grant all privileges on observium.* to '$MYSQLUSER'@'localhost' identified by '$MYSQLPASSWORD';"
+
+php includes/sql-schema/update.php
+
+
+####################################################
+# Final tasks
+####################################################
+a2enmod rewrite
+apache2ctl restart
+
+./adduser.php $USERNAME $PASSWORD 10
+
+# setup iptables to allow traffic on our ports
+# iptables -A INPUT -i eth0 -p tcp -m multiport --dports 8080,8081,8085 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+# Create the service file
+echo "Observium:      http://\$ipaddr"            > /etc/confconsole/services.txt
+echo "Web Shell:      http://\$ipaddr:12320"     >> /etc/confconsole/services.txt
+echo "Webmin:         http://\$ipaddr:12321"     >> /etc/confconsole/services.txt
+echo "SMB/CIFS:       nzbapp (ports 139/445)"    >> /etc/confconsole/services.txt
+echo
+echo "   Note: Default userid/password for Observium is"
+echo "         observium/observium"
+
+service mysql stop
+service apache2 stop
+
+####################################################
+# done!
+####################################################
+exit
+
+
+
+
