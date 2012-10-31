@@ -114,6 +114,9 @@ EOF
       # make it persistent
       /etc/init.d/iptables save
     fi
+    # make sure snmpd starts on boot
+    chkconfig snmpd on
+
   fi
   if [ $SUSE -eq 1 ]; then
     echo "put configure commands for SUSE here"
