@@ -68,7 +68,7 @@ install ()
 # Configure installed packages
 configure ()
 {
-  if [ "$DEBIAN" -eq 1 ]; then
+  if [ $DEBIAN -eq 1 ]; then
     # Configure /etc/default/snmpd
     sed -i "s|SNMPDOPTS='-Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid'|SNMPDOPTS='-Lsd -Lf /dev/null -u snmp -p /var/run/snmpd.pid'|" /etc/default/snmpd
 
@@ -87,10 +87,10 @@ configure ()
 EOF
 
   fi
-  if [ "$REDHAT" -eq 1 ]; then
+  if [ $REDHAT -eq 1 ]; then
     echo "put configure commands for REDHAT here"
   fi
-  if [ "$SUSE" -eq 1 ]; then
+  if [ $SUSE -eq 1 ]; then
     echo "put configure commands for SUSE here"
   fi
 }
