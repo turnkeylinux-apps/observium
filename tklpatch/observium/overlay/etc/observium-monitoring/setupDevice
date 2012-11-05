@@ -57,7 +57,7 @@ install ()
       install snmpd lm-sensors
   fi
   if [ $REDHAT -eq 1 ]; then
-    yum --assumeyes install net-snmp
+    yum --assumeyes install net-snmp net-snmp-utils
   fi
   if [ $SUSE -eq 1 ]; then
     echo "put install commands for SUSE here"
@@ -127,7 +127,7 @@ EOF
 startSNMPd ()
 {
   if [ $DEBIAN -eq 1 ]; then
-    service snmpd restart
+    /etc/init.d/snmpd restart
   fi
   if [ $REDHAT -eq 1 ]; then
     /etc/init.d/snmpd restart
