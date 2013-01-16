@@ -1,7 +1,5 @@
 #!/bin/bash -ex
 
-set -e
-
 HOSTNAME=observium
 USERNAME=observium
 PASSWORD=observium
@@ -73,7 +71,7 @@ php includes/sql-schema/update.php
 # Final tasks
 ####################################################
 a2enmod rewrite
-apache2ctl restart
+# apache2ctl restart
 
 ./adduser.php $USERNAME $PASSWORD 10
 
