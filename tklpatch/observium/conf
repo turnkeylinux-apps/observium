@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+set -e
+
 HOSTNAME=observium
 USERNAME=observium
 PASSWORD=observium
