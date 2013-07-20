@@ -64,7 +64,7 @@ chown www-data:www-data graphs rrd
 mysql -u root -p$MYSQLPASSWORD -e "create database observium;"
 mysql -u root -p$MYSQLPASSWORD -e "grant all privileges on observium.* to '$MYSQLUSER'@'localhost' identified by '$MYSQLPASSWORD';"
 
-php includes/sql-schema/update.php
+php includes/update/update.php
 
 
 ####################################################
