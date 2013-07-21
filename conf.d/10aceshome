@@ -1,0 +1,20 @@
+#!/bin/bash -ex
+
+####################################################
+# put the aceshome repo in /opt
+# aceshome contains some nice utility scripts
+####################################################
+REPO=aceshome
+cd /opt
+
+echo "cloning ${REPO} repository"
+git clone https://github.com/tssgery/${REPO}.git
+
+if [ -x /opt/${REPO}/setup ]; then
+   echo "${REPO} repo installed, calling setup now"
+   /opt/${REPO}/setup
+else
+   echo "${REPO} repo installed but no setup script found (which may be normal)"
+fi
+
+
