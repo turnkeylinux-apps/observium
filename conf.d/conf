@@ -1,14 +1,9 @@
 #!/bin/bash -ex
 
-HOSTNAME=observium
 USERNAME=observium
 PASSWORD=observium
 MYSQLUSER=observium
 MYSQLPASSWORD=observium
-
-# set hostname
-echo "$HOSTNAME" > /etc/hostname
-sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y \
