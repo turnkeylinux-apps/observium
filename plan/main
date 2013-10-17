@@ -1,2 +1,18 @@
 #include <turnkey/base>
 #include <turnkey/lamp>
+
+subversion
+php5-gd
+php5-snmp
+php-pear
+snmp
+graphviz
+rrdtool
+fping
+imagemagick
+whois
+mtr-tiny
+nmap
+ipmitool
+libvirt-bin
+

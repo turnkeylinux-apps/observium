@@ -5,12 +5,6 @@ PASSWORD=observium
 MYSQLUSER=observium
 MYSQLPASSWORD=observium
 
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get -y \
-    -o DPkg::Options::=--force-confdef \
-    -o DPkg::Options::=--force-confold \
-    install subversion
-
 ####################################################
 # INSTALL OBSERVIUM
 ####################################################
@@ -18,20 +12,6 @@ mkdir -p /opt/observium
 cd /opt
 svn co http://www.observium.org/svn/observer/trunk observium
 cd observium
-
-####################################################
-# INSTALL DEPENDENCIES
-####################################################
-DEBIAN_FRONTEND=noninteractive apt-get -y \
-    -o DPkg::Options::=--force-confdef \
-    -o DPkg::Options::=--force-confold \
-    install \
-    php5-gd php5-snmp php-pear snmp graphviz \
-    rrdtool \
-    fping imagemagick whois mtr-tiny nmap ipmitool \
-    libvirt-bin
-
-mysqladmin -u root password $MYSQLPASSWORD
 
 ####################################################
 # INSTALL IPv4/IPv6 pear libraries
@@ -42,6 +22,8 @@ pear install Net_IPv6
 ####################################################
 # CONFIGURE OBSERVIUM
 ####################################################
+mysqladmin -u root password $MYSQLPASSWORD
+
 cp config.php.default config.php
 sed -i "s|USERNAME|$MYSQLUSER|" config.php
 sed -i "s|PASSWORD|$MYSQLPASSWORD|" config.php
