@@ -1,7 +1,6 @@
 #include <turnkey/base>
 #include <turnkey/lamp>
 
-subversion
 php5-gd
 php5-snmp
 php-pear
