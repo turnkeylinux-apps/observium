@@ -5,5 +5,6 @@ dl() {
     cd $2; curl -L -f -O $PROXY $1; cd -
 }
 
+SRC=/usr/local/src
 dl http://www.observium.org/observium-community-latest.tar.gz $SRC
 
