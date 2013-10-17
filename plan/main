@@ -4,7 +4,7 @@
 php5-gd
 php5-snmp
 php-pear
-python-mysqld
+python-mysqldb
 snmp
 graphviz
 rrdtool
