@@ -10,9 +10,14 @@ PASSWORD=observium
 SRC=/usr/local/src
 APPROOT=/opt/observium
 
-# unpack observium
+# unpack observium and create required directories
 tar -zxf $SRC/observium-*.tar.gz -C $(dirname $APPROOT)
 rm $SRC/observium-*.tar.gz
+
+mkdir -p $APPROOT/rrd
+mkdir -p $APPROOT/graphs
+chown www-data:www-data $APPROOT/rrd
+chown www-data:www-data $APPROOT/graphs
 
 # start services
 /etc/init.d/mysql start
@@ -37,13 +42,6 @@ php $APPROOT/includes/update/update.php
 ####################################################
 pear install Net_IPv4
 pear install Net_IPv6
-
-####################################################
-# CONFIGURE OBSERVIUM
-####################################################
-cd $APPROOT
-mkdir graphs rrd
-chown www-data:www-data graphs rrd
 
 ####################################################
 # Final tasks
