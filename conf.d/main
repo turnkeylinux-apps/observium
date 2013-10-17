@@ -50,9 +50,10 @@ php ./includes/update/update.php
 # create admin user (level 10)
 $APPROOT/adduser.php $ADMIN_NAME $ADMIN_PASS 10
 
-####################################################
-# INSTALL IPv4/IPv6 pear libraries
-####################################################
+# configure snmp mibs
+echo "mibdirs /opt/observium/mibs" > /etc/snmp/snmp.conf
+
+# install pear libraries
 pear install Net_IPv4
 pear install Net_IPv6
 
