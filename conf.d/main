@@ -48,7 +48,7 @@ cd $APPROOT
 php ./includes/update/update.php
 
 # create admin user (level 10)
-$APPROOT/adduser.php $ADMIN_USER $ADMIN_PASS 10
+$APPROOT/adduser.php $ADMIN_NAME $ADMIN_PASS 10
 
 ####################################################
 # INSTALL IPv4/IPv6 pear libraries
