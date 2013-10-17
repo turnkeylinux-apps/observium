@@ -1,0 +1,23 @@
+turnkey-observium-13.0 (1) turnkey; urgency=low
+
+  * Initial public release of TurnKey Observium, based on TKLDev submitted
+    by Eric Young.
+
+  * SSL support out of the box.
+  
+  * Latest upstream version of Observium:
+  
+    - Installed from upstream source code to /opt/observium.
+    - Includes all recommended packages including libvirt for virtual
+      machine monitoring.
+    - Includes recommended cronjob for discovery and polling.
+  
+  * Regenerates all secrets during installation / firstboot (security).
+
+  * Includes postfix MTA (bound to localhost) for sending of email (e.g.
+    password recovery). Also includes webmin postfix module for convenience
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Alon Swartz <alon@turnkeylinux.org>  Thu, 17 Oct 2013 19:33:38 +0300
