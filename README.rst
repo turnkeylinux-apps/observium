@@ -1,42 +1,38 @@
-Observium (www.observium.org)
+Observium - Network Management and Monitoring
 =============================================
 
-Observium is an autodiscovering SNMP based network monitoring platform written in PHP 
-which includes support for a wide range of network hardware and operating systems 
-including Cisco, Linux, HP, Dell, FreeBSD, Juniper, Brocade, Netscaler, NetApp and many more.
+`Observium`_ is an autodiscovering SNMP based network monitoring
+platform written in PHP which includes support for a wide range of
+network hardware and operating systems including Cisco, Windows, Linux,
+HP, Dell, FreeBSD, Juniper, Brocade, Netscaler, NetApp and many more.
 
-Observium has grown out of a lack of network monitoring platforms which are both simple to 
-manage and pleasant to use. It is intended to provide a navigable interface to the health 
-and performance of your network. Its design goals include collecting as much historical 
-data about devices as possible, using as much auto-discovery as possible with little or 
-no manual intervention, and having a very intuitive interface.
+This appliance includes all the standard features in `TurnKey Core`_,
+and on top of that:
 
+- Observium configurations:
 
-NOTES
-==================================================================
+    - Installed from upstream source code to /opt/observium.
+    - Includes all recommended packages including libvirt for virtual
+      machine monitoring.
+    - Includes recommended cronjob for discovery and polling.
 
-
-DONATIONS
-==================================================================
-If you want to send donations to keep this work going, please send them to
-the authors of the included programs and/or Turnkey Linux.
-They are the heroes in this effort, not me.
-
-
-USAGE
-==================================================================
-This patch needs to built with the Turnkey Linux TKLdev appliance
-
-More information can be found at:
-http://http://www.turnkeylinux.org/tkldev
-
+- SSL support out of the box.
+- `PHPMyAdmin`_ administration frontend for MySQL (listening on port
+  12322 - uses SSL).
+- Postfix MTA (bound to localhost) to allow sending of email (e.g.,
+  password recovery).
+- All secrets will be regenerated during installation / firstboot
+  (security).
+- Webmin modules for configuring Apache2, PHP, MySQL and Postfix.
 
 Credentials *(passwords set at first boot)*
 -------------------------------------------
 
--  Webmin, Webshell, SSH, Samba: username **root**
--  Observium user: username=observium/password=observium 
+-  Webmin, SSH, MySQL, phpMyAdmin: username **root**
+-  Observium: username **admin**
 
 
-
+.. _Observium: http://www.observium.org
+.. _TurnKey Core: http://www.turnkeylinux.org/core
+.. _PHPMyAdmin: http://www.phpmyadmin.net
 
