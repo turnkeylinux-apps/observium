@@ -26,9 +26,8 @@ DEBIAN_FRONTEND=noninteractive apt-get -y \
     -o DPkg::Options::=--force-confdef \
     -o DPkg::Options::=--force-confold \
     install \
-    libapache2-mod-php5 php5-cli php5-mysql \
     php5-gd php5-snmp php-pear snmp graphviz \
-    mysql-server mysql-client rrdtool \
+    rrdtool \
     fping imagemagick whois mtr-tiny nmap ipmitool \
     libvirt-bin
 

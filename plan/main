@@ -1,1 +1,2 @@
 #include <turnkey/base>
+#include <turnkey/lamp>
