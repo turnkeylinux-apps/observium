@@ -55,19 +55,6 @@ $APPROOT/adduser.php $ADMIN_USER $ADMIN_PASS 10
 pear install Net_IPv4
 pear install Net_IPv6
 
-####################################################
-# Final tasks
-####################################################
-
-
-# Create the service file
-echo "Observium:      http://\$ipaddr"            > /etc/confconsole/services.txt
-echo "Web Shell:      http://\$ipaddr:12320"     >> /etc/confconsole/services.txt
-echo "Webmin:         http://\$ipaddr:12321"     >> /etc/confconsole/services.txt
-echo >> /etc/confconsole/services.txt
-echo "   Note: Default userid/password for Observium is:"  >> /etc/confconsole/services.txt
-echo "         $ADMIN_USER/$ADMIN_PASS" >> /etc/confconsole/services.txt
-
 # stop services
 /etc/init.d/mysql stop
 
