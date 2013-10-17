@@ -9,6 +9,7 @@ PASSWORD=observium
 
 SRC=/usr/local/src
 APPROOT=/opt/observium
+WEBROOT=/var/www/observium
 
 # unpack observium and create required directories
 tar -zxf $SRC/observium-*.tar.gz -C $(dirname $APPROOT)
@@ -18,6 +19,13 @@ mkdir -p $APPROOT/rrd
 mkdir -p $APPROOT/graphs
 chown www-data:www-data $APPROOT/rrd
 chown www-data:www-data $APPROOT/graphs
+
+# configure apache and webroot
+a2dissite default
+a2ensite observium
+a2enmod rewrite
+
+ln -s $APPROOT/html $WEBROOT
 
 # start services
 /etc/init.d/mysql start
@@ -46,8 +54,6 @@ pear install Net_IPv6
 ####################################################
 # Final tasks
 ####################################################
-a2enmod rewrite
-# apache2ctl restart
 
 ./adduser.php $USERNAME $PASSWORD 10
 
