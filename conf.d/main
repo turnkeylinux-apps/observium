@@ -4,8 +4,8 @@ DB_NAME=observium
 DB_USER=observium
 DB_PASS=$(mcookie)
 
-USERNAME=observium
-PASSWORD=observium
+ADMIN_NAME=admin
+ADMIN_PASS=turnkey
 
 SRC=/usr/local/src
 APPROOT=/opt/observium
@@ -43,7 +43,11 @@ MYSQL_ADMIN="mysqladmin --user=root --password=$MYSQL_PASS"
 $MYSQL_ADMIN create $DB_NAME
 $MYSQL_BATCH --execute "grant all privileges on $DB_NAME.* to $DB_USER@localhost identified by '$DB_PASS'; flush privileges;"
 
+# insert default schema
 php $APPROOT/includes/update/update.php
+
+# create admin user (level 10)
+$APPROOT/adduser.php $ADMIN_USER $ADMIN_PASS 10
 
 ####################################################
 # INSTALL IPv4/IPv6 pear libraries
@@ -55,7 +59,6 @@ pear install Net_IPv6
 # Final tasks
 ####################################################
 
-./adduser.php $USERNAME $PASSWORD 10
 
 # Create the service file
 echo "Observium:      http://\$ipaddr"            > /etc/confconsole/services.txt
@@ -63,7 +66,7 @@ echo "Web Shell:      http://\$ipaddr:12320"     >> /etc/confconsole/services.tx
 echo "Webmin:         http://\$ipaddr:12321"     >> /etc/confconsole/services.txt
 echo >> /etc/confconsole/services.txt
 echo "   Note: Default userid/password for Observium is:"  >> /etc/confconsole/services.txt
-echo "         observium/observium" >> /etc/confconsole/services.txt
+echo "         $ADMIN_USER/$ADMIN_PASS" >> /etc/confconsole/services.txt
 
 # stop services
 /etc/init.d/mysql stop
