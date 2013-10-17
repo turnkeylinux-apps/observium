@@ -1,9 +1,11 @@
 #!/bin/bash -ex
 
+DB_NAME=observium
+DB_USER=observium
+DB_PASS=$(mcookie)
+
 USERNAME=observium
 PASSWORD=observium
-MYSQLUSER=observium
-MYSQLPASSWORD=observium
 
 SRC=/usr/local/src
 APPROOT=/opt/observium
@@ -11,6 +13,24 @@ APPROOT=/opt/observium
 # unpack observium
 tar -zxf $SRC/observium-*.tar.gz -C $(dirname $APPROOT)
 rm $SRC/observium-*.tar.gz
+
+# start services
+/etc/init.d/mysql start
+
+# setup the database
+CONF=$APPROOT/config.php
+cp $APPROOT/config.php.default $CONF
+sed -i "s|db_name.*|db_name'] = \"$DB_NAME\";|" $CONF
+sed -i "s|db_user.*|db_user'] = \"$DB_USER\";|" $CONF
+sed -i "s|db_pass.*|db_pass'] = \"$DB_PASS\";|" $CONF
+
+MYSQL_BATCH="mysql --user=root --password=$MYSQL_PASS --batch"
+MYSQL_ADMIN="mysqladmin --user=root --password=$MYSQL_PASS"
+
+$MYSQL_ADMIN create $DB_NAME
+$MYSQL_BATCH --execute "grant all privileges on $DB_NAME.* to $DB_USER@localhost identified by '$DB_PASS'; flush privileges;"
+
+php $APPROOT/includes/update/update.php
 
 ####################################################
 # INSTALL IPv4/IPv6 pear libraries
@@ -21,20 +41,9 @@ pear install Net_IPv6
 ####################################################
 # CONFIGURE OBSERVIUM
 ####################################################
-mysqladmin -u root password $MYSQLPASSWORD
-
 cd $APPROOT
-cp config.php.default config.php
-sed -i "s|USERNAME|$MYSQLUSER|" config.php
-sed -i "s|PASSWORD|$MYSQLPASSWORD|" config.php
 mkdir graphs rrd
 chown www-data:www-data graphs rrd
-
-mysql -u root -p$MYSQLPASSWORD -e "create database observium;"
-mysql -u root -p$MYSQLPASSWORD -e "grant all privileges on observium.* to '$MYSQLUSER'@'localhost' identified by '$MYSQLPASSWORD';"
-
-php includes/update/update.php
-
 
 ####################################################
 # Final tasks
@@ -52,15 +61,6 @@ echo >> /etc/confconsole/services.txt
 echo "   Note: Default userid/password for Observium is:"  >> /etc/confconsole/services.txt
 echo "         observium/observium" >> /etc/confconsole/services.txt
 
-
-service mysql stop
-service apache2 stop
-
-####################################################
-# done!
-####################################################
-exit
-
-
-
+# stop services
+/etc/init.d/mysql stop
 
