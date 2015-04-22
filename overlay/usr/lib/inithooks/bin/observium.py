@@ -10,7 +10,7 @@ import sys
 import getopt
 
 import crypt
-import random
+from random import SystemRandom
 import hashlib
 
 from dialog_wrapper import Dialog
@@ -42,6 +42,7 @@ def main():
             "Observium Password",
             "Enter new password for the Observium 'admin' account.")
 
+    random = SystemRandom()
     salt = hashlib.sha1(str(random.random())).hexdigest()[:8]
     hash = crypt.crypt(password, "$1$" + salt + "$")
 
