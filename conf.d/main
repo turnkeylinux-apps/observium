@@ -21,7 +21,7 @@ chown www-data:www-data $APPROOT/rrd
 chown www-data:www-data $APPROOT/graphs
 
 # configure apache and webroot
-a2dissite default
+a2dissite 000-default
 a2ensite observium
 a2enmod rewrite
 
