@@ -33,6 +33,6 @@ Credentials *(passwords set at first boot)*
 
 
 .. _Observium: http://www.observium.org
-.. _TurnKey Core: http://www.turnkeylinux.org/core
+.. _TurnKey Core: https://www.turnkeylinux.org/core
 .. _Adminer: http://www.adminer.org/
 
