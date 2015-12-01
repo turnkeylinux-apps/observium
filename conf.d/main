@@ -57,6 +57,11 @@ echo "mibdirs /opt/observium/mibs" > /etc/snmp/snmp.conf
 pear install Net_IPv4
 pear install Net_IPv6
 
+# allow logging
+mkdir -p /opt/observium/logs
+chown -R www-data:www-data /opt/observium/logs
+ln -s /opt/observium/logs /var/log/observium
+
 # stop services
 /etc/init.d/mysql stop
 
