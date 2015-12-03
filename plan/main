@@ -3,6 +3,7 @@
 
 php5-gd
 php5-snmp
+php5-mcrypt
 php-pear
 python-mysqldb
 snmp
