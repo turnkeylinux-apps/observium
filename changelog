@@ -1,3 +1,18 @@
+turnkey-observium-14.1 (1) turnkey; urgency=low
+
+  * Observium:
+
+    - Latest upstream version of Observium.
+    - Created missing log directory (#460).
+    - Fixed missing php5-mcrypt dependency (#487).
+
+  * Latest Debian package versions.
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Wed, 17 Feb 2016 16:58:22 +1100
+
 turnkey-observium-14.0 (1) turnkey; urgency=low
 
   * Latest upstream version of Observium
