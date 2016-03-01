@@ -45,7 +45,7 @@ $MYSQL_BATCH --execute "grant all privileges on $DB_NAME.* to $DB_USER@localhost
 
 # insert default schema
 cd $APPROOT
-php ./includes/update/update.php
+./discovery.php -u
 
 # create admin user (level 10)
 $APPROOT/adduser.php $ADMIN_NAME $ADMIN_PASS 10
