@@ -33,9 +33,13 @@ ln -s $APPROOT/html $WEBROOT
 # setup the database
 CONF=$APPROOT/config.php
 cp $APPROOT/config.php.default $CONF
-sed -i "s|db_name.*|db_name'] = \"$DB_NAME\";|" $CONF
-sed -i "s|db_user.*|db_user'] = \"$DB_USER\";|" $CONF
-sed -i "s|db_pass.*|db_pass'] = \"$DB_PASS\";|" $CONF
+sed -i "\
+    s|\(\['db_name'\]\).*|\1 = \"$DB_NAME\";|; \
+    s|\(\['db_user'\]\).*|\1 = \"$DB_USER\";|; \
+    s|\(\['db_pass'\]\).*|\1 = \"$DB_PASS\";|; " $CONF
+
+echo "\$config['email']['backend'] = \"sendmail\";" >> $CONF
+echo "\$config['email']['sendmail_path'] = \"/usr/bin/sendmail -t -i\";" >> $CONF
 
 MYSQL_BATCH="mysql --user=root --password=$MYSQL_PASS --batch"
 MYSQL_ADMIN="mysqladmin --user=root --password=$MYSQL_PASS"
