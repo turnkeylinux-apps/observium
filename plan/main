@@ -1,9 +1,10 @@
 #include <turnkey/base>
 #include <turnkey/lamp>
 
-php5-gd
-php5-snmp
-php5-mcrypt
+php-gd
+php-snmp
+php-mcrypt
+php-xml
 php-pear
 python-mysqldb
 snmp
@@ -15,5 +16,6 @@ whois
 mtr-tiny
 nmap
 ipmitool
-libvirt-bin
+libvirt-daemon-system
+libvirt-clients
 
