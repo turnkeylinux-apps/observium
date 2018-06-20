@@ -25,14 +25,20 @@ and on top of that:
   (security).
 - Webmin modules for configuring Apache2, PHP, MySQL and Postfix.
 
+Note: Due to security concerns, adding devices from the webUI is NOT enabled.
+      Please add new devices manually via the CLI. Alternatively, if you are
+      not concerned with the potential security risk, adding devices from the
+      webUI may be enabled - please see `#488(comment)`_.
+
 Credentials *(passwords set at first boot)*
 -------------------------------------------
 
--  Webmin, SSH, MySQL, Adminer: username **root**
+-  Webmin, SSH, MySQL: username **root**
+-  Adminer: username **adminer**
 -  Observium: username **admin**
 
 
 .. _Observium: http://www.observium.org
 .. _TurnKey Core: https://www.turnkeylinux.org/core
 .. _Adminer: http://www.adminer.org/
-
+.. _#488(comment): https://github.com/turnkeylinux/tracker/issues/488#issuecomment-153762770
