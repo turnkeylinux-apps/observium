@@ -16,6 +16,10 @@ and on top of that:
       machine monitoring.
     - Includes recommended cronjob for discovery and polling.
 
+      **Security note**: Updates to Observium may require supervision so
+      they **ARE NOT** configured to install automatically. See `Observium
+      documentation`_ for upgrading.
+
 - SSL support out of the box.
 - `Adminer`_ administration frontend for MySQL (listening on port
   12322 - uses SSL).
@@ -38,7 +42,8 @@ Credentials *(passwords set at first boot)*
 -  Observium: username **admin**
 
 
-.. _Observium: http://www.observium.org
+.. _Observium: https://www.observium.org
 .. _TurnKey Core: https://www.turnkeylinux.org/core
-.. _Adminer: http://www.adminer.org/
+.. _Observium documentation: http://docs.observium.org/updating/
+.. _Adminer: https://www.adminer.org/
 .. _#488(comment): https://github.com/turnkeylinux/tracker/issues/488#issuecomment-153762770
