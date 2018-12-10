@@ -1,5 +1,7 @@
 turnkey-observium-15.1 (1) turnkey; urgency=low
 
+  * Install latest Observium CE release (18.9.1).
+
   * Rebuild to resolve inadvertent removal of mariadb during sec-updates
     - part of #1246.
 
