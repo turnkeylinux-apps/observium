@@ -3,7 +3,6 @@
 
 php-gd
 php-snmp
-php-mcrypt
 php-xml
 php-pear
 python-mysqldb
