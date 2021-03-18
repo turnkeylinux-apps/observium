@@ -6,5 +6,8 @@ dl() {
 }
 
 SRC=/usr/local/src
-dl http://www.observium.org/observium-community-latest.tar.gz $SRC
 
+turnkey-get-observium-ver > $SRC/observium_version
+
+SRC=/usr/local/src
+dl http://www.observium.org/observium-community-latest.tar.gz $SRC
