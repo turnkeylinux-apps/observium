@@ -1,0 +1,122 @@
+#!/bin/bash -e
+
+green=$(tput setaf 2)
+yellow=$(tput setaf 226)
+red=$(tput setaf 196)
+reset=$(tput sgr0)
+
+info() { echo "${green}INFO:${reset} $@"; }
+warn() { echo "${yellow}WARN:${reset} $@" >&2; }
+fatal() { echo "${red}FATAL:${reset} $@" >&2; exit 1; }
+
+[[ -z "$DEBUG" ]] || set -x
+
+if [[ "$(whoami)" != 'root' ]]; then
+    fatal "This script must be run as 'root', please try again with 'sudo'."
+fi
+
+# update channel; 'ce' by default
+CHANNEL=ce
+
+CUR_VER=/usr/local/lib/turnkey-update-observium/current.json
+OB_FILE=observium-community-latest.tar.gz
+OB_DIR=/opt/observium
+BU_DIR=$(dirname $OB_DIR)/$(basename $OB_DIR)_backup_$(date +"%Y_%m_%d")
+
+count=0
+while [[ -d $BU_DIR ]]; do
+    count=$((count+1))
+    BU_DIR=$BU_DIR_$count
+done
+
+cat <<EOF
+**Experimental Observium Community Edition update script**
+
+${red}Use at your own risk!${reset}
+
+The current Observium install dir is:
+    $OB_DIR
+
+A backup of this directory will be created here:
+    $BU_DIR
+
+${green}It is strongly advised that a full current system backup (e.g. TKLBAM) be
+created PRIOR to upgrade.${reset}
+
+Previous backup directories can be removed as desired (assuming everything
+works).
+
+Note that this script will check the current version from data created at
+TurnKey appliance build time. If Observium has been updated via an
+alternate method (or the file doesn't exist) it will always download and
+"update" to the latest Observium CE. It will do this, even if you are
+already running the latest CE version; or have installed from an
+alternate channel!
+
+Please provide feedback via TurnKey Linux forums[1], or Issue Tracker[2].
+
+[1] https://www.turnkeylinux.org/forum
+[2] https://github.com/turnkeylinux/tracker/issues
+
+${yellow}<Ctrl><c>${reset} to exit Or ${yellow}<Enter>${reset} to continue.
+EOF
+read -rs response
+
+if [[ "$CHANNEL" != 'ce' ]]; then
+    fatal "Unfortuantely, this script does not know how to update $CHANNEL channel."
+fi
+
+if [[ -f "$CUR_VER" ]]; then
+    VER_DIR=$(dirname $CUR_VER)
+    # uses CHANNEL var, but current only supports 'ce'
+    info "Checking for latest $CHANNEL version."
+    turnkey-get-observium-ver $CHANNEL > $VER_DIR/latest.json
+    if [[ "$(jq -r 'keys'[0] $CUR_VER)" != "$CHANNEL" ]]; then
+        fatal "Currently this script only works with the '$CHANNEL' channel."
+    elif cmp -s $CUR_VER $VER_DIR/latest.json; then
+        info "Current version matches latest version, exiting..."
+        rm -rf $VER_DIR/latest.json
+        exit
+    else
+        info "A different version has been found, attempting update..."
+    fi
+else
+    warn "Current version not found, attempting update anyway..."
+fi
+
+info "Backing up $OB_DIR to $BU_DIR"
+if [[ -d "$OB_DIR" ]]; then
+    mv $OB_DIR $BU_DIR
+else
+    fatal "$OB_DIR not found."
+fi
+
+info "Downloading latest release from observium.org"
+wget -O /tmp/$OB_FILE https://www.observium.org/$OB_FILE
+
+info "Unpacking tarball"
+tar zxvf /tmp/$OB_FILE -C /opt/
+
+paths="rrd *log*"
+for path in $paths; do
+    info "Moving $path from backup to new install"
+    mv $BU_DIR/$path $OB_DIR/
+done
+
+info "Copying config.php from backup to new install"
+cp $BU_DIR/config.php $OB_DIR/
+
+info "Updating DB schema"
+/opt/observium/discovery.php -u
+
+info "Forcing rediscovery of all devices"
+/opt/observium/discovery.php -h all
+
+info "Setting permissions for relevant Observium sub-directories."
+chown -R www-data:www-data $OB_DIR/{rrd,graphs}
+chown -R www-data:www-data $OB_DIR/*log*
+
+info "Removng downloaded Observium archive file."
+rm -rf /tmp/$OB_FILE
+
+info "Please test and if everything is working ok, you can manually delete $BU_DIR"
