@@ -2,19 +2,26 @@
 #include <turnkey/lamp>
 
 php-gd
+php-json
 php-snmp
 php-xml
 php-pear
-python-mysqldb
+
 snmp
-graphviz
 rrdtool
 fping
-imagemagick
-whois
-mtr-tiny
 nmap
+mtr-tiny
 ipmitool
+
+graphviz
+imagemagick
+
+python-mysqldb
+
+/* Optional deps for scanning VMs */
 libvirt-daemon-system
 libvirt-clients
 
+/* turnkey-get-observium-ver dep */
+jq
