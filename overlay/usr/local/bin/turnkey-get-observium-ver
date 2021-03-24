@@ -1,0 +1,66 @@
+#!/bin/bash -e
+
+red=$(tput setaf 196)
+reset=$(tput sgr0)
+
+fatal() { echo "${red}FATAL:${reset} $@" >&2; exit 1; }
+
+if [[ "$(whoami)" != 'root' ]]; then
+    fatal "This script must be run as 'root', please try again with 'sudo'."
+fi
+
+usage() {
+    EXIT_CODE=0
+    if [[ "$#" -gt 0 ]]; then
+        EXIT_CODE=$1
+        shift
+        echo "${red}ERROR:${reset} $@" >&2
+        echo
+    fi
+    cat <<EOF
+Usage: $(basename $0) CHANNEL [OPTIONS]
+
+Script to check for latest Observium release version, build number and date,
+depending on channel.
+
+Environment variables:
+
+    DEBUG       Set DEBUG to enable debugging output
+
+Channel:
+
+    stable      Show the current "stable" release channel version.
+    current     Show the latest "current" release channel version.
+    ce          Show the current "community edition" release channel version.
+                Default (if none selected): ce
+
+Options:
+
+    --help |-h  Display this help and exit.
+
+EOF
+    exit $EXIT_CODE
+}
+
+[[ -z "$DEBUG" ]] || set -x
+
+unset CHAN
+while [[ "$#" -ge 1 ]]; do
+    case $1 in
+        stable|current|ce)
+            [[ -z "$SET" ]] \
+                || usage 1 "Only one channel can be selected."
+            CHAN=$1
+            shift;;
+        --help|-h)
+            usage;;
+        -*)
+            usage 1 "Unknown option: $1";;
+        *)
+            usage 1 "Unknow channel: $1";;
+    esac
+done
+[[ -n "$CHAN" ]] || CHAN=ce
+
+versions=$(curl https://www.observium.org/versions.php -s)
+echo "{\"$CHAN\":" $(jq .$CHAN <<<$versions)"}"

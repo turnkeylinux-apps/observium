@@ -1,3 +1,19 @@
+turnkey-observium-16.1 (1) turnkey; urgency=low
+
+  * Install latest Observium CE release - 20.9.0.
+
+  * Fix error finding MIBs modules - closes #1510.
+
+  * Add housekeeping to Observium cron job - closes #1422.
+
+  * Include 'turnkey-update-observium' (and 'turnkey-get-observium-ver')
+    script(s) to support easy update - closes #750.
+
+  * Note: Please refer to turnkey-core's 16.1 changelog for changes common to
+    all appliances. Here we only describe changes specific to this appliance
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Thu, 18 Mar 2021 12:54:10 +1100
+
 turnkey-observium-16.0 (1) turnkey; urgency=low
 
   * Install latest Observium CE release - 19.8.1.
