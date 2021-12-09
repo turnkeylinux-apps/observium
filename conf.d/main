@@ -51,7 +51,7 @@ mysql --batch --execute "\
     flush privileges;"
 
 # configure snmp mibs
-echo "mibdirs +/opt/observium/mibs" > /etc/snmp/snmp.conf
+echo "mibdirs $APPROOT/mibs/rfc:$APPROOT/mibs/net-snmp" > /etc/snmp/snmp.conf
 
 # insert default schema
 cd $APPROOT
