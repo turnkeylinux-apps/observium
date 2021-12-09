@@ -3,9 +3,13 @@
 
 php-gd
 php-json
-php-snmp
+php-mbstring
+php-bcmath
+php-opcache
+php-curl
 php-xml
 php-pear
+php-apcu
 
 snmp
 rrdtool
@@ -17,7 +21,9 @@ ipmitool
 graphviz
 imagemagick
 
-python-mysqldb
+python3-mysqldb
+python3-pymysql
+python-is-python3
 
 /* Optional deps for scanning VMs */
 libvirt-daemon-system
