@@ -60,10 +60,6 @@ cd $APPROOT
 # create admin user (level 10)
 $APPROOT/adduser.php $ADMIN_NAME $ADMIN_PASS 10
 
-# install pear libraries
-pear install Net_IPv4
-pear install Net_IPv6
-
 # allow logging
 mkdir -p $APPROOT/logs
 chown -R www-data:www-data $APPROOT/logs
