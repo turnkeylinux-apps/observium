@@ -17,7 +17,7 @@ ipmitool
 graphviz
 imagemagick
 
-python-mysqldb
+python3-mysqldb
 
 /* Optional deps for scanning VMs */
 libvirt-daemon-system
