@@ -1,3 +1,13 @@
+turnkey-observium-17.1 (1) turnkey; urgency=low
+
+  * Updated all Debian packages to latest.
+    [ autopatched by buildtasks ]
+
+  * Patched bugfix release. Closes #1734.
+    [ autopatched by buildtasks ]
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Wed, 14 Sep 2022 06:53:58 +0000
+
 turnkey-observium-17.0 (1) turnkey; urgency=low
 
   * Install latest Observium CE release - 21.10.1.
