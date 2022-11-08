@@ -50,9 +50,6 @@ mysql --batch --execute "\
     grant all privileges on $DB_NAME.* to $DB_USER@localhost identified by '$DB_PASS'; \
     flush privileges;"
 
-# configure snmp mibs
-echo "mibdirs +/opt/observium/mibs" > /etc/snmp/snmp.conf
-
 # insert default schema
 cd $APPROOT
 ./discovery.php -u
