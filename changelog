@@ -1,6 +1,6 @@
 turnkey-observium-17.2 (1) turnkey; urgency=low
 
-  * UPDATE THIS PRIOR TO RELEASE...
+  * Install latest Observium CE release - 22.12.
 
   * Update cron job to explicitly call poller-wrapper.py with python3.
     Closes #1771
@@ -11,7 +11,7 @@ turnkey-observium-17.2 (1) turnkey; urgency=low
   * Note: Please refer to turnkey-core's 17.2 changelog for changes common to
     all appliances. Here we only describe changes specific to this appliance
 
- -- Jeremy Davis <jeremy@turnkeylinux.org>  Tue, 08 Nov 2022 03:31:52 +0000
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Sun, 19 Feb 2023 22:53:30 +0000
 
 turnkey-observium-17.1 (1) turnkey; urgency=low
 

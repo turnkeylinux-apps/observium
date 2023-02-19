@@ -6,7 +6,11 @@ php-json
 php-snmp
 php-xml
 php-pear
+php-mbstring
+php-bcmath
+php-curl
 
+whois
 snmp
 rrdtool
 fping
