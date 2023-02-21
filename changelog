@@ -8,6 +8,9 @@ turnkey-observium-17.2 (1) turnkey; urgency=low
   * Remove MIBs config from /etc/snmp/snmp.conf (not required for Observium).
     Closes #1644
 
+  * Add additional dependencies and confirm that graphing is working (either
+    the issue is fixed, or the original issue was client side). Closes #1798
+
   * Note: Please refer to turnkey-core's 17.2 changelog for changes common to
     all appliances. Here we only describe changes specific to this appliance
 
