@@ -9,6 +9,9 @@ php-pear
 php-mbstring
 php-bcmath
 php-curl
+php-opcache
+php-apcu
+php-curl
 
 whois
 snmp
