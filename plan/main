@@ -11,10 +11,10 @@ php-bcmath
 php-curl
 php-opcache
 php-apcu
-php-curl
 
 whois
 snmp
+snmpd
 rrdtool
 fping
 nmap
@@ -25,10 +25,10 @@ graphviz
 imagemagick
 
 python3-mysqldb
+python3-pymysql
+python-is-python3
+rsync
 
 /* Optional deps for scanning VMs */
 libvirt-daemon-system
 libvirt-clients
-
-/* turnkey-get-observium-ver dep */
-jq

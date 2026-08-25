@@ -1,7 +1,10 @@
-#!/bin/bash -ex
+#!/bin/bash -e
+
+set -x
 
 DB_NAME=observium
 DB_USER=observium
+set +x
 DB_PASS=$(mcookie)
 
 ADMIN_NAME=admin
@@ -10,61 +13,83 @@ ADMIN_PASS=turnkey
 SRC=/usr/local/src
 APPROOT=/opt/observium
 WEBROOT=/var/www/observium
-
-VERSION_LOCATION=/usr/local/lib/turnkey-update-observium/current.json
+VERSION=26.1.14545
+REVISION=14545
+RELEASE_DATE=2026-01-16
+ARCHIVE=observium-community-${VERSION}.tar.gz
+ARCHIVE_SHA256=01f4bec0bb01c49afe07e26f2b3f79d4eeeabf412ce5f15193df4ed7fc77d715
+ARCHIVE_ETAG='"7f64b3d-651124aefd0ab"'
+ARCHIVE_SIZE=133581629
+ARCHIVE_LAST_MODIFIED='Tue, 05 May 2026 13:47:48 GMT'
+ARCHIVE_URL=https://www.observium.org/observium-community-latest.tar.gz
+SOURCE_RECORD=/usr/local/share/turnkey-observium/source
 
 # unpack observium and create required directories
-tar -zxf $SRC/observium-*.tar.gz -C $(dirname $APPROOT)
-rm $SRC/observium-*.tar.gz
-mkdir -p $(dirname $VERSION_LOCATION)
-mv $SRC/observium_version $VERSION_LOCATION
+tar -zxf "$SRC/$ARCHIVE" -C "$(dirname "$APPROOT")"
+rm "$SRC/$ARCHIVE"
 
-mkdir -p $APPROOT/rrd
-mkdir -p $APPROOT/graphs
-chown www-data:www-data $APPROOT/rrd
-chown www-data:www-data $APPROOT/graphs
+mkdir -p "$APPROOT/rrd" "$APPROOT/graphs" "$APPROOT/logs"
 
 # configure apache and webroot
 a2dissite 000-default
 a2ensite observium
 a2enmod rewrite
 
-ln -s $APPROOT/html $WEBROOT
+ln -s "$APPROOT/html" "$WEBROOT"
 
 # start services
-service mysql start
+service mariadb start
 
 # setup the database
 CONF=$APPROOT/config.php
-cp $APPROOT/config.php.default $CONF
+cp "$APPROOT/config.php.default" "$CONF"
 sed -i "\
-    s|\(\['db_name'\]\).*|\1 = \"$DB_NAME\";|; \
-    s|\(\['db_user'\]\).*|\1 = \"$DB_USER\";|; \
-    s|\(\['db_pass'\]\).*|\1 = \"$DB_PASS\";|; " $CONF
+    s|\(\['db_name'\]\).*|\1 = '$DB_NAME';|; \
+    s|\(\['db_user'\]\).*|\1 = '$DB_USER';|; \
+    s|\(\['db_pass'\]\).*|\1 = '$DB_PASS';|; " "$CONF"
 
-echo "\$config['email']['backend'] = \"sendmail\";" >> $CONF
-echo "\$config['email']['sendmail_path'] = \"/usr/bin/sendmail -t -i\";" >> $CONF
+echo "\$config['email']['backend'] = 'sendmail';" >> "$CONF"
+echo "\$config['email']['sendmail_path'] = '/usr/bin/sendmail -t -i';" >> "$CONF"
 
-mysqladmin create $DB_NAME
 mysql --batch --execute "\
-    grant all privileges on $DB_NAME.* to $DB_USER@localhost identified by '$DB_PASS'; \
-    flush privileges;"
+    CREATE DATABASE $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; \
+    CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS'; \
+    GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
 
 # insert default schema
-cd $APPROOT
+cd "$APPROOT"
 ./discovery.php -u
 
 # create admin user (level 10)
-$APPROOT/adduser.php $ADMIN_NAME $ADMIN_PASS 10
+"$APPROOT/adduser.php" "$ADMIN_NAME" "$ADMIN_PASS" 10
+
+unset DB_PASS ADMIN_PASS
+set -x
 
 # install pear libraries
 pear install Net_IPv4
 pear install Net_IPv6
 
 # allow logging
-mkdir -p $APPROOT/logs
-chown -R www-data:www-data $APPROOT/logs
-ln -s $APPROOT/logs /var/log/observium
+chown -R root:root "$APPROOT"
+chown -R www-data:www-data "$APPROOT/rrd" "$APPROOT/graphs" "$APPROOT/logs"
+chown root:www-data "$CONF"
+chmod 0440 "$CONF"
+ln -s "$APPROOT/logs" /var/log/observium
+
+install -d -m 0755 "$(dirname "$SOURCE_RECORD")"
+cat > "$SOURCE_RECORD" <<EOF
+CHANNEL=ce
+VERSION=$VERSION
+REVISION=$REVISION
+RELEASE_DATE=$RELEASE_DATE
+ARCHIVE_SHA256=$ARCHIVE_SHA256
+ARCHIVE_ETAG='$ARCHIVE_ETAG'
+ARCHIVE_SIZE=$ARCHIVE_SIZE
+ARCHIVE_LAST_MODIFIED='$ARCHIVE_LAST_MODIFIED'
+ARCHIVE_URL=$ARCHIVE_URL
+EOF
+chmod 0644 "$SOURCE_RECORD"
 
 # stop services
-service mysql stop
+service mariadb stop

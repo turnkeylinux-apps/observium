@@ -1,122 +1,211 @@
 #!/bin/bash -e
 
-green=$(tput setaf 2)
-yellow=$(tput setaf 226)
-red=$(tput setaf 196)
-reset=$(tput sgr0)
+APPROOT=/opt/observium
+SOURCE_RECORD=/usr/local/share/turnkey-observium/source
 
-info() { echo "${green}INFO:${reset} $@"; }
-warn() { echo "${yellow}WARN:${reset} $@" >&2; }
-fatal() { echo "${red}FATAL:${reset} $@" >&2; exit 1; }
+info() { echo "INFO: $*"; }
+fatal() { echo "FATAL: $*" >&2; exit 1; }
 
-[[ -z "$DEBUG" ]] || set -x
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") --check | --apply [--dry-run]
 
-if [[ "$(whoami)" != 'root' ]]; then
-    fatal "This script must be run as 'root', please try again with 'sudo'."
-fi
-
-# update channel; 'ce' by default
-CHANNEL=ce
-
-CUR_VER=/usr/local/lib/turnkey-update-observium/current.json
-OB_FILE=observium-community-latest.tar.gz
-OB_DIR=/opt/observium
-BU_DIR=$(dirname $OB_DIR)/$(basename $OB_DIR)_backup_$(date +"%Y_%m_%d")
-
-count=0
-while [[ -d $BU_DIR ]]; do
-    count=$((count+1))
-    BU_DIR=$BU_DIR_$count
-done
-
-cat <<EOF
-**Experimental Observium Community Edition update script**
-
-${red}Use at your own risk!${reset}
-
-The current Observium install dir is:
-    $OB_DIR
-
-A backup of this directory will be created here:
-    $BU_DIR
-
-${green}It is strongly advised that a full current system backup (e.g. TKLBAM) be
-created PRIOR to upgrade.${reset}
-
-Previous backup directories can be removed as desired (assuming everything
-works).
-
-Note that this script will check the current version from data created at
-TurnKey appliance build time. If Observium has been updated via an
-alternate method (or the file doesn't exist) it will always download and
-"update" to the latest Observium CE. It will do this, even if you are
-already running the latest CE version; or have installed from an
-alternate channel!
-
-Please provide feedback via TurnKey Linux forums[1], or Issue Tracker[2].
-
-[1] https://www.turnkeylinux.org/forum
-[2] https://github.com/turnkeylinux/tracker/issues
-
-${yellow}<Ctrl><c>${reset} to exit Or ${yellow}<Enter>${reset} to continue.
+Check or apply an update from the official Observium Community Edition
+archive. The check and dry-run paths do not modify the installation.
 EOF
-read -rs response
+}
 
-if [[ "$CHANNEL" != 'ce' ]]; then
-    fatal "Unfortuantely, this script does not know how to update $CHANNEL channel."
-fi
+load_source_record() {
+    [ -r "$SOURCE_RECORD" ] || fatal "source record not found: $SOURCE_RECORD"
+    # This root-owned file is written by the appliance build and updater.
+    # shellcheck disable=SC1090
+    . "$SOURCE_RECORD"
+    [ "${CHANNEL:-}" = ce ] || fatal "unsupported installed channel: ${CHANNEL:-unknown}"
+    [ -n "${VERSION:-}" ] || fatal "installed version is missing"
+    [ -n "${ARCHIVE_URL:-}" ] || fatal "archive URL is missing"
+}
 
-if [[ -f "$CUR_VER" ]]; then
-    VER_DIR=$(dirname $CUR_VER)
-    # uses CHANNEL var, but current only supports 'ce'
-    info "Checking for latest $CHANNEL version."
-    turnkey-get-observium-ver $CHANNEL > $VER_DIR/latest.json
-    if [[ "$(jq -r 'keys'[0] $CUR_VER)" != "$CHANNEL" ]]; then
-        fatal "Currently this script only works with the '$CHANNEL' channel."
-    elif cmp -s $CUR_VER $VER_DIR/latest.json; then
-        info "Current version matches latest version, exiting..."
-        rm -rf $VER_DIR/latest.json
-        exit
-    else
-        info "A different version has been found, attempting update..."
+read_candidate_headers() {
+    local headers
+    headers=$(curl --fail --silent --show-error --location --head \
+        --max-time 30 "$ARCHIVE_URL")
+    CANDIDATE_ETAG=$(printf '%s\n' "$headers" | awk '
+        BEGIN { IGNORECASE = 1 }
+        /^etag:/ { sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); value=$0 }
+        END { print value }
+    ')
+    CANDIDATE_SIZE=$(printf '%s\n' "$headers" | awk '
+        BEGIN { IGNORECASE = 1 }
+        /^content-length:/ { sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); value=$0 }
+        END { print value }
+    ')
+    CANDIDATE_LAST_MODIFIED=$(printf '%s\n' "$headers" | awk '
+        BEGIN { IGNORECASE = 1 }
+        /^last-modified:/ { sub(/^[^:]*:[[:space:]]*/, ""); sub(/\r$/, ""); value=$0 }
+        END { print value }
+    ')
+    [ -n "$CANDIDATE_ETAG" ] || fatal "official archive did not return an ETag"
+    [ -n "$CANDIDATE_SIZE" ] || fatal "official archive did not return a size"
+}
+
+update_status() {
+    UPDATE_STATUS=update-available
+    if [ "$CANDIDATE_ETAG" = "${ARCHIVE_ETAG:-}" ] && \
+       [ "$CANDIDATE_SIZE" = "${ARCHIVE_SIZE:-}" ]; then
+        UPDATE_STATUS=current
     fi
-else
-    warn "Current version not found, attempting update anyway..."
-fi
+}
 
-info "Backing up $OB_DIR to $BU_DIR"
-if [[ -d "$OB_DIR" ]]; then
-    mv $OB_DIR $BU_DIR
-else
-    fatal "$OB_DIR not found."
-fi
+print_status() {
+    echo "installed_version=$VERSION"
+    echo "installed_revision=${REVISION:-unknown}"
+    echo "eligible_channel=$CHANNEL"
+    echo "candidate=official-community-latest"
+    echo "candidate_etag=$CANDIDATE_ETAG"
+    echo "candidate_size=$CANDIDATE_SIZE"
+    echo "candidate_last_modified=$CANDIDATE_LAST_MODIFIED"
+    echo "integrity=https-official-metadata-and-internal-community-identity"
+    echo "status=$UPDATE_STATUS"
+}
 
-info "Downloading latest release from observium.org"
-wget -O /tmp/$OB_FILE https://www.observium.org/$OB_FILE
+write_source_record() {
+    local path=$1 version=$2 revision=$3 release_date=$4 digest=$5
+    local temporary
+    temporary=$(mktemp "${path}.XXXXXX")
+    {
+        echo "CHANNEL=ce"
+        printf 'VERSION=%q\n' "$version"
+        printf 'REVISION=%q\n' "$revision"
+        printf 'RELEASE_DATE=%q\n' "$release_date"
+        printf 'ARCHIVE_SHA256=%q\n' "$digest"
+        printf 'ARCHIVE_ETAG=%q\n' "$CANDIDATE_ETAG"
+        printf 'ARCHIVE_SIZE=%q\n' "$CANDIDATE_SIZE"
+        printf 'ARCHIVE_LAST_MODIFIED=%q\n' "$CANDIDATE_LAST_MODIFIED"
+        printf 'ARCHIVE_URL=%q\n' "$ARCHIVE_URL"
+    } > "$temporary"
+    chmod 0644 "$temporary"
+    mv "$temporary" "$path"
+}
 
-info "Unpacking tarball"
-tar zxvf /tmp/$OB_FILE -C /opt/
+check_archive_paths() {
+    local archive=$1
+    tar -tzf "$archive" | awk '
+        /^\// || /(^|\/)\.\.($|\/)/ || $0 !~ /^observium(\/|$)/ { bad=1 }
+        END { exit bad }
+    ' || fatal "archive contains an unsafe or unexpected path"
+}
 
-paths="rrd *log*"
-for path in $paths; do
-    info "Moving $path from backup to new install"
-    mv $BU_DIR/$path $OB_DIR/
+apply_update() {
+    [ "$(id -u)" -eq 0 ] || fatal "--apply must run as root"
+    [ -d "$APPROOT" ] || fatal "Observium installation not found: $APPROOT"
+
+    local stage archive candidate version_data edition train version revision release_date
+    local archive_sha backup_dir cron_was_active=0
+    stage=$(mktemp -d /var/tmp/turnkey-observium-update.XXXXXX)
+    archive=$stage/observium-community-latest.tar.gz
+    backup_dir=/var/backups/turnkey-observium/$(date -u +%Y%m%dT%H%M%SZ)
+
+    cleanup() {
+        local status=$?
+        trap - EXIT HUP INT TERM
+        rm -rf "$stage"
+        if [ "$cron_was_active" -eq 1 ]; then
+            systemctl start cron || true
+        fi
+        exit "$status"
+    }
+    trap cleanup EXIT HUP INT TERM
+
+    info "downloading the official Observium CE archive"
+    curl --fail --location --show-error --header "If-Match: $CANDIDATE_ETAG" \
+        --output "$archive" "$ARCHIVE_URL"
+    [ "$(stat -c %s "$archive")" = "$CANDIDATE_SIZE" ] \
+        || fatal "download size differs from official metadata"
+    archive_sha=$(sha256sum "$archive" | awk '{print $1}')
+    check_archive_paths "$archive"
+    tar -xzf "$archive" -C "$stage"
+    candidate=$stage/observium
+    [ -f "$candidate/includes/definitions/version.inc.php" ] \
+        || fatal "archive lacks Observium version metadata"
+
+    version_data=$(php -r '
+        require $argv[1];
+        echo implode("|", [OBSERVIUM_EDITION, OBSERVIUM_TRAIN,
+                           OBSERVIUM_VERSION, OBSERVIUM_REV, OBSERVIUM_DATE]);
+    ' "$candidate/includes/definitions/version.inc.php")
+    IFS='|' read -r edition train version revision release_date <<< "$version_data"
+    [ "$edition" = community ] || fatal "archive is not Community Edition"
+    [ "$train" = ce ] || fatal "archive is not on the CE channel"
+    [ -n "$version" ] && [ -n "$revision" ] && [ -n "$release_date" ] \
+        || fatal "archive version metadata is incomplete"
+
+    install -d -m 0700 "$backup_dir"
+    cp -a "$APPROOT/config.php" "$backup_dir/config.php"
+    mariadb-dump --single-transaction --routines --triggers observium \
+        > "$backup_dir/observium.sql"
+
+    if systemctl is-active --quiet cron; then
+        cron_was_active=1
+        systemctl stop cron
+    fi
+
+    chown -R root:root "$candidate"
+    rsync -a --delete \
+        --exclude=config.php --exclude=rrd/ --exclude=graphs/ --exclude=logs/ \
+        "$candidate/" "$APPROOT/"
+    cd "$APPROOT"
+    ./discovery.php -u
+    ./discovery.php -h all
+
+    chown -R www-data:www-data "$APPROOT/rrd" "$APPROOT/graphs" "$APPROOT/logs"
+    chown root:www-data "$APPROOT/config.php"
+    chmod 0440 "$APPROOT/config.php"
+    write_source_record "$SOURCE_RECORD" "$version" "$revision" \
+        "$release_date" "$archive_sha"
+
+    info "updated Observium CE from $VERSION to $version"
+    info "database and configuration backup: $backup_dir"
+}
+
+mode=
+dry_run=0
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --check|--apply)
+            [ -z "$mode" ] || { usage >&2; exit 2; }
+            mode=$1
+            ;;
+        --dry-run)
+            dry_run=1
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        *)
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
 done
 
-info "Copying config.php from backup to new install"
-cp $BU_DIR/config.php $OB_DIR/
+[ -n "$mode" ] || { usage >&2; exit 2; }
+[ "$mode" = --apply ] || [ "$dry_run" -eq 0 ] \
+    || fatal "--dry-run requires --apply"
 
-info "Updating DB schema"
-/opt/observium/discovery.php -u
+load_source_record
+read_candidate_headers
+update_status
+print_status
 
-info "Forcing rediscovery of all devices"
-/opt/observium/discovery.php -h all
+if [ "$mode" = --check ] || [ "$dry_run" -eq 1 ]; then
+    exit 0
+fi
 
-info "Setting permissions for relevant Observium sub-directories."
-chown -R www-data:www-data $OB_DIR/{rrd,graphs}
-chown -R www-data:www-data $OB_DIR/*log*
+if [ "$UPDATE_STATUS" = current ]; then
+    info "installed release matches the official CE archive"
+    exit 0
+fi
 
-info "Removng downloaded Observium archive file."
-rm -rf /tmp/$OB_FILE
-
-info "Please test and if everything is working ok, you can manually delete $BU_DIR"
+apply_update

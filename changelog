@@ -1,3 +1,14 @@
+turnkey-observium-19.0 (1) turnkey; urgency=low
+
+  * Install the official Observium CE 26.1.14545 archive with a pinned
+    SHA-256 digest.
+  * Update the appliance for Debian 13/Trixie and PHP 8.4.
+  * Modernize firstboot password hashing and keep generated credentials out
+    of process arguments and build tracing.
+  * Add a noninteractive Community Edition update check and apply command.
+
+ -- TurnKey Linux release engineering <release@turnkeylinux.org>  Tue, 25 Aug 2026 00:00:00 +0000
+
 turnkey-observium-18.0 (1) turnkey; urgency=low
 
   * Install latest Observium CE release - 23.09.13005.

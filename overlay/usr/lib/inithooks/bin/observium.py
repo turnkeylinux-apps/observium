@@ -1,55 +1,55 @@
 #!/usr/bin/python3
-"""Set Observium admin password
+"""Set the Observium admin password."""
 
-Option:
-    --pass=     unless provided, will ask interactively
-
-"""
-
+import argparse
+import subprocess
 import sys
-import getopt
-
-import crypt
-from random import SystemRandom
-import hashlib
 
 from libinithooks.dialog_wrapper import Dialog
 from mysqlconf import MySQL
 
-def usage(s=None):
-    if s:
-        print("Error:", s, file=sys.stderr)
-    print("Syntax: %s [options]" % sys.argv[0], file=sys.stderr)
-    print(__doc__, file=sys.stderr)
-    sys.exit(1)
 
 def main():
-    try:
-        opts, args = getopt.gnu_getopt(sys.argv[1:], "h", ['help', 'pass='])
-    except getopt.GetoptError as e:
-        usage(e)
+    parser = argparse.ArgumentParser(description=__doc__)
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument('--pass', dest='password', help=argparse.SUPPRESS)
+    source.add_argument('--pass-stdin', action='store_true',
+                        help='read the new password from standard input')
+    args = parser.parse_args()
 
-    password = ""
-    for opt, val in opts:
-        if opt in ('-h', '--help'):
-            usage()
-        elif opt == '--pass':
-            password = val
-
-    if not password:
+    if args.pass_stdin:
+        password = sys.stdin.read()
+    elif args.password is not None:
+        password = args.password
+    else:
         d = Dialog('TurnKey Linux - First boot configuration')
         password = d.get_password(
             "Observium Password",
             "Enter new password for the Observium 'admin' account.")
 
-    random = SystemRandom()
-    salt = hashlib.sha1(str(random.random()).encode('utf8')).hexdigest()[:8]
-    hash = crypt.crypt(password, "$1$" + salt + "$")
+    if not password:
+        parser.error('password must not be empty')
+
+    result = subprocess.run(
+        [
+            'php', '-r',
+            'echo password_hash(stream_get_contents(STDIN), PASSWORD_DEFAULT);'
+        ],
+        input=password,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    password_hash = result.stdout
+    if not password_hash:
+        raise RuntimeError('PHP did not return a password hash')
 
     m = MySQL()
-    m.execute('UPDATE observium.users SET password=%s WHERE username=\"admin\";', (hash,))
+    m.execute(
+        'UPDATE observium.users SET password=%s WHERE username=%s;',
+        (password_hash, 'admin'),
+    )
 
 
 if __name__ == "__main__":
     main()
-
