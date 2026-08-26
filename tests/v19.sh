@@ -125,7 +125,7 @@ for _ in $(seq 1 20); do
 done
 snmp_name=$(snmpget -v2c -c "$FIXTURE_COMMUNITY" -Oqv \
     "$FIXTURE_HOST:$FIXTURE_PORT" 1.3.6.1.2.1.1.5.0)
-[[ $snmp_name = observium-v19-fixture ]] \
+[[ $snmp_name = '"observium-v19-fixture"' ]] \
     || fail "local SNMP fixture returned an unexpected sysName"
 
 add_output=$("$APP_ROOT/add_device.php" -p "$FIXTURE_HOST" \
