@@ -139,7 +139,7 @@ poller_output=$("$APP_ROOT/poller.php" -h "$FIXTURE_HOST")
 require_contains "$poller_output" "$FIXTURE_HOST" "Observium poller"
 
 db_device=$(mysql --batch --skip-column-names observium --execute="
-    SELECT CONCAT(hostname, '|', snmpver, '|', port, '|',
+    SELECT CONCAT(hostname, '|', snmp_version, '|', snmp_port, '|',
                   last_discovered IS NOT NULL, '|', last_polled IS NOT NULL)
     FROM devices WHERE hostname='$FIXTURE_HOST';")
 [[ $db_device = "$FIXTURE_HOST|v2c|$FIXTURE_PORT|1|1" ]] \
