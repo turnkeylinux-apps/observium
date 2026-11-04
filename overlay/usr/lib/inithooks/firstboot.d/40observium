@@ -5,6 +5,10 @@
 
 set +x
 [ -e "$INITHOOKS_CONF" ] && . "$INITHOOKS_CONF"
-printf '%s' "$APP_PASS" | "$INITHOOKS_PATH/bin/observium.py" --pass-stdin
+if [ -n "$APP_PASS" ]; then
+    printf '%s' "$APP_PASS" | "$INITHOOKS_PATH/bin/observium.py" --pass-stdin
+else
+    "$INITHOOKS_PATH/bin/observium.py"
+fi
 unset APP_PASS
 set -x
